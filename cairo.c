@@ -51,7 +51,9 @@ void draw(cairo_t *cr, UserData *gd)
 
 void display(void)
 {
+    int i;
     glClear(GL_COLOR_BUFFER_BIT);
+    for(i = 0; i < WIDTH*HEIGHT*4; i++) g_data.img[i] = 0;
     GLint m_viewport[4];
     g_data.cr = cairo_create (g_data.surface);
     draw(g_data.cr, &g_data);
@@ -67,8 +69,6 @@ void display(void)
 
 void reshape(int w, int h)
 {
-    int i;
-    for(i = 0; i < WIDTH*HEIGHT*4; i++) g_data.img[i] = 0;
     glViewport(0, 0, (GLsizei) w, (GLsizei) h);
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
