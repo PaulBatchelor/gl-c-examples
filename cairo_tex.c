@@ -24,15 +24,16 @@ void draw(cairo_t *cr, UserData *gd)
     cairo_set_source_rgba(cr, 1, 1, 1, 0.0);
     cairo_paint(cr);
     cairo_set_source_rgb(cr, 1, 1, 1);
-    cairo_arc(cr, WIDTH / 2, HEIGHT / 2, 30, 0, M_PI);
-    cairo_arc(cr, WIDTH / 2, HEIGHT / 2, 30, M_PI, 0);
-    cairo_fill(cr);
+    cairo_set_line_width(cr, 4.0);
+    cairo_arc(cr, WIDTH / 2, HEIGHT / 2, WIDTH / 3, 0, M_PI);
+    cairo_arc(cr, WIDTH / 2, HEIGHT / 2, WIDTH / 3, M_PI, 0);
+    cairo_stroke(cr);
     cairo_mask(cr, gd->radpat);
 }
 
 void init(UserData *gd)
 {
-    //glEnable(GL_BLEND);
+    glEnable(GL_BLEND);
     glPixelStorei (GL_UNPACK_ALIGNMENT, 1);
     int stride = cairo_format_stride_for_width(CAIRO_FORMAT_ARGB32, WIDTH);
     gd->surface = 
@@ -64,7 +65,7 @@ void init(UserData *gd)
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, WIDTH, 
                 HEIGHT, 0, GL_RGBA, GL_UNSIGNED_BYTE, 
                 gd->img);
-    glHint(GL_LINE_SMOOTH_HINT, GL_DONT_CARE);
+    //glHint(GL_LINE_SMOOTH_HINT, GL_DONT_CARE);
 }
 
 void clean(UserData *gd)
@@ -77,11 +78,16 @@ void clean(UserData *gd)
 void display(void)
 {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    glClearColor(1.0, 0.0, 1.0, 1);
+    glClearColor(0.0, 0.0, 0.0, 1);
+    int yOff = 1;
+    int xOff = 1;
+    float size = 1.0;
     glEnable(GL_TEXTURE_2D);
-    glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_DECAL);
+    glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
     glBindTexture(GL_TEXTURE_2D, g_data.texName);
     //glBlendFunc(GL_ONE, GL_ZERO);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
     glBegin(GL_QUADS);
         glColor4f(0, 1.0, 0, 1);
         glTexCoord2f(0.0, 0.0); glVertex3f(-2.0, -1.0, 0.0);
@@ -90,14 +96,13 @@ void display(void)
         glTexCoord2f(1.0, 0.0); glVertex3f(0.0, -1.0, 0.0);
     glEnd();
     
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    //glBegin(GL_QUADS);
-    //    glColor4f(1, 0.0, 0, 1);
-    //    glTexCoord2f(0.0, 0.0); glVertex3f(-2.0, -1.0, 0.0);
-    //    glTexCoord2f(0.0, 1.0); glVertex3f(-2.0, 1.0, 0.0);
-    //    glTexCoord2f(1.0, 1.0); glVertex3f(-1.0, 1.0, 0.0);
-    //    glTexCoord2f(1.0, 0.0); glVertex3f(-1.0, -1.0, 0.0);
-    //glEnd();
+    glBegin(GL_QUADS);
+        glColor4f(1, 0.0, 0, 1);
+        glTexCoord2f(0.0, 0.0); glVertex3f(-2.0 + xOff, -1.0 + yOff, 0.0);
+        glTexCoord2f(0.0, 1.0); glVertex3f(-2.0 + xOff, 1.0 + yOff, 0.0);
+        glTexCoord2f(1.0, 1.0); glVertex3f(0.0 + xOff, 1.0 + yOff, 0.0);
+        glTexCoord2f(1.0, 0.0); glVertex3f(0.0 + xOff, -1.0 + yOff, 0.0);
+    glEnd();
     glFlush();
     glDisable(GL_TEXTURE_2D);
 }
