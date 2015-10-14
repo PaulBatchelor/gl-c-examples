@@ -77,6 +77,12 @@ void keyboard(unsigned char key, int x, int y)
    }
 }
 
+void idleFunc( )
+{
+    /* render the scene */
+    glutPostRedisplay( );
+}
+
 int main(int argc, char** argv)
 {
    glutInit(&argc, argv);
@@ -86,6 +92,7 @@ int main(int argc, char** argv)
    glutCreateWindow(argv[0]);
    makeImg();
    init();
+   glutIdleFunc(idleFunc);
    glutReshapeFunc(reshape);
    glutKeyboardFunc(keyboard);
    glutDisplayFunc(display);
