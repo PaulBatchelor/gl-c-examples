@@ -3,56 +3,24 @@
 #include <GL/gl.h>
 #include <GL/glu.h>
 #include <GL/glut.h>
-//#include <cairo/cairo.h>
 
 #define WIDTH 500
 #define HEIGHT 500
 
 
 typedef struct {
-    //cairo_surface_t *surface;
-    //cairo_t *cr;
-    //unsigned char img[WIDTH * HEIGHT * 4];
     unsigned error;
     unsigned char *img;
     unsigned width, height;
-    //cairo_pattern_t *linpat, *radpat;
     GLuint texName;
 } UserData;
 
 UserData g_data;
 
-//void draw(cairo_t *cr, UserData *gd) 
-//{
-//    cairo_set_source_rgba(cr, 1, 1, 1, 0.0);
-//    cairo_paint(cr);
-//    cairo_set_source_rgb(cr, 1, 1, 1);
-//    cairo_set_line_width(cr, 4.0);
-//    cairo_arc(cr, WIDTH / 2, HEIGHT / 2, WIDTH / 3, 0, M_PI);
-//    cairo_arc(cr, WIDTH / 2, HEIGHT / 2, WIDTH / 3, M_PI, 0);
-//    cairo_stroke(cr);
-//    cairo_mask(cr, gd->radpat);
-//}
-
 void init(UserData *gd)
 {
     glEnable(GL_BLEND);
     glPixelStorei (GL_UNPACK_ALIGNMENT, 1);
-    //int stride = cairo_format_stride_for_width(CAIRO_FORMAT_ARGB32, WIDTH);
-    //gd->surface = 
-    //cairo_image_surface_create_for_data ((unsigned char *)gd->img, CAIRO_FORMAT_ARGB32, WIDTH, HEIGHT, stride);
-    //gd->linpat = cairo_pattern_create_linear(0, 0, 1, 1);
-
-    //cairo_pattern_add_color_stop_rgb(gd->linpat, 0, 0, 0.3, 0.6);
-    ///cairo_pattern_add_color_stop_rgb(gd->linpat, 1, 0, 0.6, 0.3);
-
-    //gd->radpat = cairo_pattern_create_radial (0.5, 0.5, 0.25, 0.5, 0.5, 0.75);
-    //cairo_pattern_add_color_stop_rgba(gd->radpat, 0, 0, 0, 0, 1);
-    //cairo_pattern_add_color_stop_rgba(gd->radpat, 0.5, 0, 0, 0, 0);
-    
-    //gd->cr = cairo_create (gd->surface);
-    //draw(gd->cr, gd);
-    //cairo_destroy(gd->cr);
 
     gd->error = lodepng_decode32_file(
             &gd->img, 
@@ -78,7 +46,6 @@ void init(UserData *gd)
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, WIDTH, 
                 HEIGHT, 0, GL_RGBA, GL_UNSIGNED_BYTE, 
                 gd->img);
-    //glHint(GL_LINE_SMOOTH_HINT, GL_DONT_CARE);
 }
 
 void clean(UserData *gd)
@@ -133,14 +100,13 @@ void keyboard(unsigned char key, int x, int y)
 {
    switch (key) {
       case 27:
-         //clean(&g_data);
+         clean(&g_data);
          exit(0);
    }
 }
 
 void idleFunc( )
 {
-    /* render the scene */
     glutPostRedisplay( );
 }
 
