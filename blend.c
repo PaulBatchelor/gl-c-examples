@@ -1,123 +1,141 @@
 #include <math.h>
-#include <stdlib.h>
 #include <stdio.h>
-
 #include <GL/gl.h>
 #include <GL/glu.h>
 #include <GL/glut.h>
-#include <string.h>
+//#include <cairo/cairo.h>
 
-void initGfx();
-void idleFunc();
-void displayFunc();
-void reshapeFunc( GLsizei width, GLsizei height );
-void keyboardFunc( unsigned char, int, int );
-void mouseFunc( int button, int state, int x, int y );
-
-/* width and height */
-long g_width = 640;
-long g_height = 640;
+#define WIDTH 500
+#define HEIGHT 500
 
 
-int main( int argc, char ** argv )
+typedef struct {
+    //cairo_surface_t *surface;
+    //cairo_t *cr;
+    //unsigned char img[WIDTH * HEIGHT * 4];
+    unsigned error;
+    unsigned char *img;
+    unsigned width, height;
+    //cairo_pattern_t *linpat, *radpat;
+    GLuint texName;
+} UserData;
+
+UserData g_data;
+
+//void draw(cairo_t *cr, UserData *gd) 
+//{
+//    cairo_set_source_rgba(cr, 1, 1, 1, 0.0);
+//    cairo_paint(cr);
+//    cairo_set_source_rgb(cr, 1, 1, 1);
+//    cairo_set_line_width(cr, 4.0);
+//    cairo_arc(cr, WIDTH / 2, HEIGHT / 2, WIDTH / 3, 0, M_PI);
+//    cairo_arc(cr, WIDTH / 2, HEIGHT / 2, WIDTH / 3, M_PI, 0);
+//    cairo_stroke(cr);
+//    cairo_mask(cr, gd->radpat);
+//}
+
+void init(UserData *gd)
 {
-    /* initialize GLUT */
-    glutInit( &argc, argv );
-    /* init gfx */
-    initGfx();
-    
-    /* let GLUT handle the current thread from here */
-    glutMainLoop();
+    glEnable(GL_BLEND);
+    glPixelStorei (GL_UNPACK_ALIGNMENT, 1);
+    //int stride = cairo_format_stride_for_width(CAIRO_FORMAT_ARGB32, WIDTH);
+    //gd->surface = 
+    //cairo_image_surface_create_for_data ((unsigned char *)gd->img, CAIRO_FORMAT_ARGB32, WIDTH, HEIGHT, stride);
+    //gd->linpat = cairo_pattern_create_linear(0, 0, 1, 1);
 
-    return 0;
+    //cairo_pattern_add_color_stop_rgb(gd->linpat, 0, 0, 0.3, 0.6);
+    ///cairo_pattern_add_color_stop_rgb(gd->linpat, 1, 0, 0.6, 0.3);
+
+    //gd->radpat = cairo_pattern_create_radial (0.5, 0.5, 0.25, 0.5, 0.5, 0.75);
+    //cairo_pattern_add_color_stop_rgba(gd->radpat, 0, 0, 0, 0, 1);
+    //cairo_pattern_add_color_stop_rgba(gd->radpat, 0.5, 0, 0, 0, 0);
+    
+    //gd->cr = cairo_create (gd->surface);
+    //draw(gd->cr, gd);
+    //cairo_destroy(gd->cr);
+
+    gd->error = lodepng_decode32_file(
+            &gd->img, 
+            &gd->width,
+            &gd->height,
+            "rad.png");
+
+    if(gd->error) {
+        printf("error %u: %s\n", gd->error, lodepng_error_text(gd->error));
+    }
+
+    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+
+    glGenTextures(1, &gd->texName);
+    glBindTexture(GL_TEXTURE_2D, gd->texName);
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, 
+                   GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, 
+                   GL_NEAREST);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, WIDTH, 
+                HEIGHT, 0, GL_RGBA, GL_UNSIGNED_BYTE, 
+                gd->img);
+    //glHint(GL_LINE_SMOOTH_HINT, GL_DONT_CARE);
 }
 
-void initGfx()
+void clean(UserData *gd)
 {
-    /* double buffer, use rgb color, enable depth buffer */
-    glutInitDisplayMode( GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH );
-    /* initialize the window size */
-    glutInitWindowSize( g_width, g_height );
-    /* set the window postion */
-    glutInitWindowPosition( 100, 100 );
-    /* create the window */
-    glutCreateWindow( "simple" );
-    
-    /* set the idle function - called when idle */
-    glutIdleFunc( idleFunc );
-    /* set the display function - called when redrawing */
-    glutDisplayFunc( displayFunc );
-    /* set the reshape function - called when client area changes */
-    glutReshapeFunc( reshapeFunc );
-    /* set the keyboard function - called on keyboard events */
-    glutKeyboardFunc( keyboardFunc );
-    /* set the mouse function - called on mouse stuff */
-    glutMouseFunc( mouseFunc );
-    
-    /* set clear color */
-    glClearColor( 0.5, 0.5, 0, 1 );
-    /* enable color material */
-    glEnable( GL_COLOR_MATERIAL );
-    /* enable depth test */
-    glEnable( GL_DEPTH_TEST );
+    free(gd->img);
 }
 
 
-
-
-void reshapeFunc( GLsizei w, GLsizei h )
+void display(void)
 {
-    /* save the new window size */
-    g_width = w; g_height = h;
-    /* map the view port to the client area */
-    glViewport( 0, 0, w, h );
-    /* set the matrix mode to project */
-    glMatrixMode( GL_PROJECTION );
-    /* load the identity matrix */
-    glLoadIdentity( );
-    /* create the viewing frustum */
-    gluPerspective( 45.0, (GLfloat) w / (GLfloat) h, 1.0, 300.0 );
-    /* set the matrix mode to modelview */
-    glMatrixMode( GL_MODELVIEW );
-    /* load the identity matrix */
-    glLoadIdentity( );
-    /* position the view point */
-    gluLookAt( 0.0f, 0.0f, 5.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f );
-}
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glClearColor(0.0, 0.0, 0.0, 1);
+    GLfloat yOff = 0;
+    GLfloat xOff = 0.5;
+    float size = 1.0;
+    glEnable(GL_TEXTURE_2D);
+    glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+    glBindTexture(GL_TEXTURE_2D, g_data.texName);
 
-void keyboardFunc( unsigned char key, int x, int y )
-{
-    switch(key) {
-        case 'q': exit(1);
-        default:
-            break;
-    }
-    glutPostRedisplay( );
-}
-
-void mouseFunc( int button, int state, int x, int y )
-{
-    if( button == GLUT_LEFT_BUTTON ) {
-        /* when left mouse button is down */
-        if( state == GLUT_DOWN ) {
-            exit(1);
-        }
-        else {
-
-        }
-    }
-    else if ( button == GLUT_RIGHT_BUTTON )
-    {
-        /* when right mouse button down */
-        if( state == GLUT_DOWN ) {
-        }
-        else {
-        }
-    }
-    else {
-    }
+    glBlendFunc(GL_ONE, GL_ONE);
+    glBegin(GL_QUADS);
+        glColor4f(0, 1.0, 0, 0.5);
+        glTexCoord2f(0.0, 0.0); glVertex3f(-2.0, -1.0, 0.0);
+        glTexCoord2f(0.0, 1.0); glVertex3f(-2.0, 1.0, 0.0);
+        glTexCoord2f(1.0, 1.0); glVertex3f(0.0, 1.0, 0.0);
+        glTexCoord2f(1.0, 0.0); glVertex3f(0.0, -1.0, 0.0);
+    glEnd();
     
-    glutPostRedisplay( );
+    glBegin(GL_QUADS);
+        glColor4f(1, 0.0, 0, 0.5);
+        glTexCoord2f(0.0, 0.0); glVertex3f(-2.0 + xOff, -1.0 + yOff, 0.0);
+        glTexCoord2f(0.0, 1.0); glVertex3f(-2.0 + xOff, 1.0 + yOff, 0.0);
+        glTexCoord2f(1.0, 1.0); glVertex3f(0.0 + xOff, 1.0 + yOff, 0.0);
+        glTexCoord2f(1.0, 0.0); glVertex3f(0.0 + xOff, -1.0 + yOff, 0.0);
+    glEnd();
+    glFlush();
+    glDisable(GL_TEXTURE_2D);
+}
+
+void reshape(int w, int h)
+{
+   glViewport(0, 0, (GLsizei) w, (GLsizei) h);
+   glMatrixMode(GL_PROJECTION);
+   glLoadIdentity();
+   gluPerspective(60.0, (GLfloat) w/(GLfloat) h, 1.0, 30.0);
+   glMatrixMode(GL_MODELVIEW);
+   glLoadIdentity();
+   glTranslatef(0.0, 0.0, -3.6);
+}
+
+void keyboard(unsigned char key, int x, int y)
+{
+   switch (key) {
+      case 27:
+         //clean(&g_data);
+         exit(0);
+   }
 }
 
 void idleFunc( )
@@ -126,37 +144,19 @@ void idleFunc( )
     glutPostRedisplay( );
 }
 
-void displayFunc( )
+int main (int argc, char *argv[])
 {
-    int i;
-    /* local state */
-
-    /* clear the color and depth buffers */
-    glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
-    
-    /* line width */
-    glLineWidth( 1.0 );
-    /* define a starting point */
-    GLfloat x = -5;
-    /* increment */
-    GLfloat xinc = 1;
-    
-    /* start primitive */
-    glColor3f(0.1607, 0.6784, 1);
-
-    glBegin(GL_TRIANGLE_STRIP);
-    glColor3f(0.1607, 0.6784, 1);
-    glVertex2f(-1.0f, -1.0f);
-    glColor3f(1, 1, 1);
-    glVertex2f(-1.0f, 1.0f);
-    glColor3f(0.1607, 0.6784, 1);
-    glVertex2f(1.0f, -1.0f);
-    glColor3f(1, 1, 1);
-    glVertex2f(1.0f, 1.0f);
-    glEnd();
-
-    /* flush! */
-    glFlush( );
-    /* swap the double buffer */
-    glutSwapBuffers( );
+    glutInit(&argc, argv);
+    glutInitDisplayMode(GLUT_SINGLE | GLUT_RGB);
+    glutInitWindowSize(640, 480);
+    glutInitWindowPosition(100, 100);
+    glutCreateWindow(argv[0]);
+    init(&g_data);
+    glutReshapeFunc(reshape);
+    glutKeyboardFunc(keyboard);
+    glutIdleFunc(idleFunc);
+    glutDisplayFunc(display);
+    glutMainLoop();
+    return 0;
 }
+
