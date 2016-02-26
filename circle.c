@@ -106,6 +106,13 @@ void idleFunc( )
     glutPostRedisplay( );
 }
 
+void timer ( int value)
+{
+    /* render the scene */
+    glutPostRedisplay( );
+    glutTimerFunc(1, timer, 1);
+}
+
 int main (int argc, char *argv[])
 {
     glutInit(&argc, argv);
@@ -117,7 +124,8 @@ int main (int argc, char *argv[])
     glutReshapeFunc(reshape);
     glutKeyboardFunc(keyboard);
     glutDisplayFunc(display);
-    glutIdleFunc(idleFunc);
+    //glutIdleFunc(idleFunc);
+    glutTimerFunc(1, timer, 1);
     glutMainLoop();
     return 0;
 }

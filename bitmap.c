@@ -8,7 +8,6 @@ GLubyte rasters[24] = {
    0xff, 0x00, 0xff, 0x00, 0xc0, 0x00, 0xc0, 0x00, 0xc0, 0x00,
    0xff, 0xc0, 0xff, 0xc0};
 
-//GLubyte img[4][4][3];
 GLubyte img[] = {
 255, 0, 0,    
 0, 255, 0,    
@@ -28,6 +27,8 @@ GLubyte img[] = {
 255, 0, 0 
 };
 
+GLubyte img2[16 * 16 * 16 * 16 * 3];
+
 void makeImg() 
 {
     //int i, x, y;
@@ -44,6 +45,10 @@ void init(void)
 {
    glPixelStorei (GL_UNPACK_ALIGNMENT, 1);
    glClearColor (0.0, 0.0, 0.0, 0.0);
+   unsigned int i;
+   for(i = 0; i < 65536 * 3; i++) {
+        img[i] = 255;
+   }
 }
 
 void display(void)
@@ -54,8 +59,8 @@ void display(void)
    //glBitmap (10, 12, 0.0, 0.0, 11.0, 0.0, rasters);
    //glBitmap (10, 12, 0.0, 0.0, 11.0, 0.0, rasters);
    //glBitmap (10, 12, 0.0, 0.0, 11.0, 0.0, rasters);
-   glPixelZoom(8.0, 8.0);
-   glDrawPixels(4, 4, GL_RGB, GL_UNSIGNED_BYTE, img);
+   //glPixelZoom(8.0, 8.0);
+   glDrawPixels(256, 256, GL_RGB, GL_UNSIGNED_BYTE, img2);
    //glCopyPixels(0, 0, 10, 12, GL_COLOR);
    glFlush();
 }
