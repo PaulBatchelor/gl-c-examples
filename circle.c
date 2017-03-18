@@ -124,8 +124,8 @@ int main (int argc, char *argv[])
     glutReshapeFunc(reshape);
     glutKeyboardFunc(keyboard);
     glutDisplayFunc(display);
-    //glutIdleFunc(idleFunc);
-    glutTimerFunc(1, timer, 1);
+    glutIdleFunc(idleFunc);
+    //glutTimerFunc(1, timer, 1);
     glutMainLoop();
     return 0;
 }

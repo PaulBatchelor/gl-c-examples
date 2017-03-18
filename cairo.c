@@ -3,10 +3,12 @@
 #include <GL/glu.h>
 #include <GL/glut.h>
 #include <cairo/cairo.h>
+#include <unistd.h>
 
 #define WIDTH 120
 #define HEIGHT 120
 
+double g_time = 0;
 
 typedef struct {
     cairo_surface_t *surface;
@@ -44,9 +46,14 @@ void clean(UserData *gd)
 
 void draw(cairo_t *cr, UserData *gd) 
 {
-	cairo_scale(gd->cr, WIDTH, HEIGHT);
-    cairo_set_source(cr, gd->linpat);
-    cairo_mask(cr, gd->radpat);
+    if(g_time) {
+        cairo_scale(gd->cr, WIDTH, HEIGHT);
+        cairo_set_source(cr, gd->linpat);
+        cairo_mask(cr, gd->radpat);
+        g_time = 0;
+    } else {
+        g_time = 1;
+    }
 }
 
 void display(void)
@@ -65,6 +72,7 @@ void display(void)
     glPixelZoom(1.0, 1.0);
     glDrawPixels(WIDTH, HEIGHT, GL_RGBA, GL_UNSIGNED_BYTE, g_data.img);
     glFlush();
+    usleep(5000);
 }
 
 void reshape(int w, int h)
@@ -86,6 +94,12 @@ void keyboard(unsigned char key, int x, int y)
    }
 }
 
+void idleFunc( )
+{
+    /* render the scene */
+    glutPostRedisplay( );
+}
+
 int main (int argc, char *argv[])
 {
     glutInit(&argc, argv);
@@ -96,6 +110,7 @@ int main (int argc, char *argv[])
     init(&g_data);
     glutReshapeFunc(reshape);
     glutKeyboardFunc(keyboard);
+    glutIdleFunc(idleFunc);
     glutDisplayFunc(display);
     glutMainLoop();
     return 0;
